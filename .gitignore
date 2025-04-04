@@ -1,0 +1,22 @@
+# Python 編譯後的快取檔案
+__pycache__/
+*.py[cod]
+
+# 環境設定
+.env
+.venv/
+venv/
+
+# pip 套件產生的資訊
+*.egg-info/
+*.egg
+dist/
+build/
+
+# IDE 設定檔
+.vscode/
+.idea/
+
+# 系統檔案
+.DS_Store
+Thumbs.db
