@@ -1,0 +1,15 @@
+{
+  "name": "Stock_line_bot",
+  "description": "A LineBot Python app using Flask",
+  "keywords": ["python", "flask", "LineBot"],
+  "env": {
+    "LINE_CHANNEL_ACCESS_TOKEN": {
+          "description": "LINE bot Channel access token",
+          "required":  true
+    },
+    "LINE_CHANNEL_SECRET": {
+          "description": "LINE bot Channel secret",
+          "required":  true
+    }
+  }
+}
