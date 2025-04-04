@@ -8,6 +8,6 @@ def get_stock_price(stock_code):
 
     stock_name = soup.find('h1', class_="C($c-link-text) Fw(b) Fz(24px) Mend(8px)").getText()
     stock_price = soup.find('span', class_="Fz(32px) Fw(b) Lh(1) Mend(16px) D(f) Ai(c) C($c-trend-down)").getText()
-    return stock_name, stock_price
+    return stock_name, stock_price, stock_code
 
-
+get_stock_price("2330")
