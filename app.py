@@ -25,7 +25,11 @@ def handle_message(event):
     User_message = event.message.text
     User_Id = event.source.user_id
     print("user_id:" + User_Id)
-    TextSendMessage(text=get_price.get_stock_price(User_message))
+    response_text = get_price.get_stock_price(User_message)
+
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=response_text))
 
 
 if __name__ == "__main__":
