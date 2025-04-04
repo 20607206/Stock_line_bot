@@ -3,6 +3,7 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 import os
+import get_price
 
 app = Flask(__name__)
 
@@ -21,11 +22,11 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    User_message = event.message.text
     User_Id = event.source.user_id
     print("user_id:" + User_Id)
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text="你說: " + event.message.text))
+    TextSendMessage(text=get_price.get_stock_price(User_message))
+
 
 if __name__ == "__main__":
     app.run()
