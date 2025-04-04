@@ -4,6 +4,9 @@ from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 import os
 import get_price
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
