@@ -17,11 +17,6 @@ def get_twstock_price(stock_code):
     realtime_data = twstock.realtime.get(stock_code)
 
     if realtime_data and realtime_data['realtime']:
-        return (f"股票代碼：{realtime_data['info']['code']}\n",
-               f"公司名稱：{realtime_data['info']['name']}\n",
-               f"最新成交價：{realtime_data['realtime']['latest_trade_price']}\n",
-               f"開盤價：{realtime_data['realtime']['open']}\n",
-               f"最高價：{realtime_data['realtime']['high']}\n",
-               f"最低價：{realtime_data['realtime']['low']}")
+        return f"股票代碼：{realtime_data['info']['code']}\n公司名稱：{realtime_data['info']['name']}\n最新成交價：{realtime_data['realtime']['latest_trade_price']}\n開盤價：{realtime_data['realtime']['open']}\n最高價：{realtime_data['realtime']['high']}\n最低價：{realtime_data['realtime']['low']}"
     else:
         print(f"無法取得股票代碼{stock_code}")
