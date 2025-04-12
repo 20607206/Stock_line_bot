@@ -101,7 +101,8 @@ def get_stock_price(stock_code):
                 return f'主資料源錯誤，已使用備援資料\n{fallback_result}'
             return result
         elif stock_code.isalpha():
-            get_us_stock_price(stock_code)
+            us_result = get_us_stock_price(stock_code)
+            return us_result
         else:
             return (
                 f'股票代碼格式錯誤{stock_code}\n'
