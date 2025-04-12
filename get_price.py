@@ -94,12 +94,18 @@ def get_us_stock_price(stock_code):
 
 #  封裝使用的主接口（可以給 LINE Bot 使用）
 def get_stock_price(stock_code):
-    match stock_code:
-        case stock_code.isdigit:
+        if stock_code.isdigit():
             result = get_twstock_price(stock_code)
             if result.startswith('無法取得') or result.startswith("主資料源錯誤"):
                 fallback_result = get_yfinance_price(stock_code)
                 return f'主資料源錯誤，已使用備援資料\n{fallback_result}'
             return result
-        case stock_code.isalpha:
+        elif stock_code.isalpha():
             get_us_stock_price(stock_code)
+        else:
+            return (
+                f'股票代碼格式錯誤{stock_code}\n'
+                f'ex:\n'
+                f'台股=>2330\n'
+                f'美股=>AAPL'
+            )
