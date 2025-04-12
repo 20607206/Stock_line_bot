@@ -4,6 +4,7 @@ import requests
 import yfinance
 from bs4 import BeautifulSoup
 import twstock
+from dateutil.utils import today
 
 with open('Taiwan Stock Exchange Popular Stock Code Comparison Table.json', "r", encoding="utf-8") as f:
     stock_name_map = json.load(f)
@@ -31,8 +32,7 @@ def remove_trailing_zero(number_str):
 #  主資料源
 def get_twstock_price(stock_code):
     try:
-        #realtime_data = twstock.realtime.get(stock_code)
-        realtime_data = None
+        realtime_data = twstock.realtime.get(stock_code)
         if realtime_data and realtime_data['realtime']:
 
             info = realtime_data.get('info', {})
@@ -69,12 +69,37 @@ def get_yfinance_price(stock_code):
         else:
             return f"無法取得股票代碼{stock_code}"
     except Exception as e:
-        return f"主資料源錯誤（yfinance 失敗）：{e}"
+        return f"備援資料源錯誤（yfinance 失敗）：{e}"
+
+#  美股資料源
+def get_us_stock_price(stock_code):
+    try:
+        today = datetime.date.today().strftime('%Y-%m-%d')
+        us_ticker = yfinance.Ticker(stock_code)
+        us_df = us_ticker.history(start= today)
+        if not us_df.empty:
+            us_latest = us_df.iloc[-1]
+            return (
+                f"股票代碼:{stock_code}\n"
+                f"公司名稱:\n"
+                f"開盤價:{us_latest['Open']:.2f}\n"
+                f"收盤價:{us_latest['Close']:.2f}\n"
+                f"最高價:{us_latest['High']:.2f}\n"
+                f"最低價:{us_latest['Low']:.2f}"
+            )
+        else:
+            return f"無法取得股票代碼{stock_code}"
+    except Exception as e:
+        return f"美股資料源錯誤（yfinance 失敗）：{e}"
 
 #  封裝使用的主接口（可以給 LINE Bot 使用）
 def get_stock_price(stock_code):
-    result = get_twstock_price(stock_code)
-    if result.startswith('無法取得') or result.startswith("主資料源錯誤"):
-        fallback_result = get_yfinance_price(stock_code)
-        return f'主資料源錯誤，已使用備援資料\n{fallback_result}'
-    return result
+    match stock_code:
+        case stock_code.isdigit:
+            result = get_twstock_price(stock_code)
+            if result.startswith('無法取得') or result.startswith("主資料源錯誤"):
+                fallback_result = get_yfinance_price(stock_code)
+                return f'主資料源錯誤，已使用備援資料\n{fallback_result}'
+            return result
+        case stock_code.isalpha:
+            get_us_stock_price(stock_code)
