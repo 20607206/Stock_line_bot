@@ -9,8 +9,10 @@ with open('stock_bidirectional_map.json', "r", encoding="utf-8") as name:
 #  辨識文字內容
 def resolve_stock_code(text):
     tw_name_to_code = maps['tw']['name_to_code']
+    tw_code_to_code = maps['tw']['code_to_code']
     us_name_to_code = maps['us']['name_to_code']
     us_code_to_code = maps['us']['code_to_code']
+
 
     text = text.upper()
     for name in tw_name_to_code:
@@ -27,6 +29,11 @@ def resolve_stock_code(text):
         if code in text:
             us_code = us_code_to_code.get(code)
             return us_code
+
+    for code in tw_code_to_code:
+        if code in text:
+            tw_code = tw_code_to_code.get(code)
+            return tw_code
 
     return text
 
