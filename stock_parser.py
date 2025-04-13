@@ -1,27 +1,30 @@
 import datetime
 import json
-import requests
 import yfinance
-from bs4 import BeautifulSoup
 import twstock
-from dateutil.utils import today
 
-with open('Taiwan Stock Exchange Popular Stock Code Comparison Table.json', "r", encoding="utf-8") as f:
-    stock_name_map = json.load(f)
+with open('stock_bidirectional_map.json', "r", encoding="utf-8") as name:
+    maps = json.load(name)
+
+def resolve_stock_code(text):
+    tw_name_to_code = maps['tw']['name_to_code']
+    us_name_to_code = maps['us']['name_to_code']
+
+    text = text.lower()
+    for name in tw_name_to_code:
+        if name in text:
+            tw_code = tw_name_to_code.get(name)
+            return tw_code
+
+    for name in us_name_to_code:
+        if name in text:
+            us_code = us_name_to_code.get(name)
+            return us_code
+    return None
 
 def get_stock_name(stock_code):
-    return stock_name_map.get(stock_code, "未知公司")
-
-'''
-def get_stock_price(stock_code):
-    url = f"https://tw.stock.yahoo.com/quote/{stock_code}.TW"
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-
-    stock_name = soup.find('h1', class_="C($c-link-text) Fw(b) Fz(24px) Mend(8px)").getText()
-    stock_price = soup.find('span', class_="Fz(32px) Fw(b) Lh(1) Mend(16px) D(f) Ai(c) C($c-trend-down)").getText()
-    return f"{stock_name} ({stock_code}) 目前股價：{stock_price}"
-'''
+    tw_code_to_name = maps['tw']['code_to_name']
+    return tw_code_to_name.get(stock_code, "未知公司")
 
 #  資料處理工具
 def remove_trailing_zero(number_str):
@@ -77,11 +80,13 @@ def get_us_stock_price(stock_code):
         today = datetime.date.today().strftime('%Y-%m-%d')
         us_ticker = yfinance.Ticker(stock_code)
         us_df = us_ticker.history(start= today)
+        us_info = us_ticker.info
+        stock_name = us_info.get('shortName', "未知公司")
         if not us_df.empty:
             us_latest = us_df.iloc[-1]
             return (
                 f"股票代碼:{stock_code}\n"
-                f"公司名稱:\n"
+                f"公司名稱:{stock_name}\n"
                 f"開盤價:{us_latest['Open']:.2f}\n"
                 f"收盤價:{us_latest['Close']:.2f}\n"
                 f"最高價:{us_latest['High']:.2f}\n"
@@ -93,7 +98,9 @@ def get_us_stock_price(stock_code):
         return f"美股資料源錯誤（yfinance 失敗）：{e}"
 
 #  封裝使用的主接口（可以給 LINE Bot 使用）
-def get_stock_price(stock_code):
+def get_stock_price(user_input):
+    try:
+        stock_code = resolve_stock_code(user_input)
         if stock_code.isdigit():
             result = get_twstock_price(stock_code)
             if result.startswith('無法取得') or result.startswith("主資料源錯誤"):
@@ -105,8 +112,10 @@ def get_stock_price(stock_code):
             return us_result
         else:
             return (
-                f'股票代碼格式錯誤{stock_code}\n'
+                f'股票代碼格式錯誤:{stock_code}\n'
                 f'ex:\n'
                 f'台股=>2330\n'
                 f'美股=>AAPL'
             )
+    except Exception as e:
+        return e
