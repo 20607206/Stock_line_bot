@@ -20,6 +20,7 @@ def resolve_stock_code(text):
         if name in text:
             us_code = us_name_to_code.get(name)
             return us_code
+
     return None
 
 def get_stock_name(stock_code):
@@ -70,7 +71,7 @@ def get_yfinance_price(stock_code):
                 f"最低價:{latest['Low']:.2f}"
             )
         else:
-            return f"無法取得股票代碼{stock_code}"
+            return f"備援資料源無法取得股票代碼{stock_code}()"
     except Exception as e:
         return f"備援資料源錯誤（yfinance 失敗）：{e}"
 
@@ -93,14 +94,14 @@ def get_us_stock_price(stock_code):
                 f"最低價:{us_latest['Low']:.2f}"
             )
         else:
-            return f"無法取得股票代碼{stock_code}"
+            return f"美股資料源無法取得股票代碼{stock_code}"
     except Exception as e:
         return f"美股資料源錯誤（yfinance 失敗）：{e}"
 
 #  封裝使用的主接口（可以給 LINE Bot 使用）
 def get_stock_price(user_input):
+    stock_code = resolve_stock_code(user_input)
     try:
-        stock_code = resolve_stock_code(user_input)
         if stock_code.isdigit():
             result = get_twstock_price(stock_code)
             if result.startswith('無法取得') or result.startswith("主資料源錯誤"):
