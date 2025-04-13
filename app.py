@@ -28,7 +28,7 @@ def handle_message(event):
     User_message = event.message.text
     User_Id = event.source.user_id
     print(f"user_id: {User_Id}, 使用者輸入: {User_message}")
-    response_text = get_price.get_stock_price(User_message)
+    response_text = stock_parser.get_stock_price(User_message)
 
     line_bot_api.reply_message(
         event.reply_token,
