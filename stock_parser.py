@@ -22,7 +22,7 @@ def resolve_stock_code(text):
             us_code = us_name_to_code.get(name)
             return us_code
 
-    return None
+    return text
 
 #  處理台股編號對應名稱
 def get_stock_name(stock_code):
