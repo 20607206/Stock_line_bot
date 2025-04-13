@@ -6,6 +6,7 @@ import twstock
 with open('stock_bidirectional_map.json', "r", encoding="utf-8") as name:
     maps = json.load(name)
 
+#  辨識文字內容
 def resolve_stock_code(text):
     tw_name_to_code = maps['tw']['name_to_code']
     us_name_to_code = maps['us']['name_to_code']
@@ -23,6 +24,7 @@ def resolve_stock_code(text):
 
     return None
 
+#  處理台股編號對應名稱
 def get_stock_name(stock_code):
     tw_code_to_name = maps['tw']['code_to_name']
     return tw_code_to_name.get(stock_code, "未知公司")
@@ -57,9 +59,8 @@ def get_twstock_price(stock_code):
 #  備援資料源
 def get_yfinance_price(stock_code):
     try:
-        today = datetime.date.today().strftime('%Y-%m-%d')
         ticker = yfinance.Ticker(f'{stock_code}.TW')
-        df = ticker.history(start = today)
+        df = ticker.history(period="1d")
         if not df.empty:
             latest = df.iloc[-1]
             return (
@@ -78,9 +79,8 @@ def get_yfinance_price(stock_code):
 #  美股資料源
 def get_us_stock_price(stock_code):
     try:
-        today = datetime.date.today().strftime('%Y-%m-%d')
         us_ticker = yfinance.Ticker(stock_code)
-        us_df = us_ticker.history(start= today)
+        us_df = us_ticker.history(period="1d")
         us_info = us_ticker.info
         stock_name = us_info.get('shortName', "未知公司")
         if not us_df.empty:
