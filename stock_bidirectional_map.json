@@ -81,6 +81,15 @@
       "microsoft": "MSFT",
       "meta": "META",
       "nvidia": "NVDA"
+    },
+    "code_to_code": {
+      "AAPL": "AAPL",
+      "TSLA": "TSLA",
+      "GOOG": "GOOG",
+      "AMZN": "AMZN",
+      "MSFT": "MSFT",
+      "META": "META",
+      "NVDA": "NVDA"
     }
   }
 }

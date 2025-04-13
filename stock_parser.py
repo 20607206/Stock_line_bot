@@ -10,8 +10,9 @@ with open('stock_bidirectional_map.json', "r", encoding="utf-8") as name:
 def resolve_stock_code(text):
     tw_name_to_code = maps['tw']['name_to_code']
     us_name_to_code = maps['us']['name_to_code']
+    us_code_to_code = maps['us']['code_to_code']
 
-    text = text.lower()
+    text = text.uper()
     for name in tw_name_to_code:
         if name in text:
             tw_code = tw_name_to_code.get(name)
@@ -20,6 +21,11 @@ def resolve_stock_code(text):
     for name in us_name_to_code:
         if name in text:
             us_code = us_name_to_code.get(name)
+            return us_code
+
+    for code in us_code_to_code:
+        if code in text:
+            us_code = us_code_to_code.get(code)
             return us_code
 
     return text
