@@ -13,7 +13,6 @@ def resolve_stock_code(text):
     us_name_to_code = maps['us']['name_to_code']
     us_code_to_code = maps['us']['code_to_code']
 
-
     text = text.upper()
     for name in tw_name_to_code:
         if name in text:
@@ -48,6 +47,28 @@ def remove_trailing_zero(number_str):
         number_str = number_str.rstrip('0').rstrip('.')
         return number_str
 
+#  設定使用者搜尋天數(預設回傳1d)
+def parse_period(user_input):
+    period_mapping = {
+        "一天": "1d",
+        "一日": "1d",
+        "五天": "5d",
+        "五日": "5d",
+        "一週": "5d",
+        "一周": "5d",
+        "一個月": "1mo",
+        "一月": "1mo",
+        "三個月": "3mo",
+        "三月": "3mo",
+        "半年": "6mo",
+        "一年": "1y",
+        "兩年": "2y"
+    }
+    for day, period in period_mapping.items():
+        if day in user_input:
+            return period
+    return "1d"
+
 #  主資料源
 def get_twstock_price(stock_code):
     try:
@@ -70,10 +91,10 @@ def get_twstock_price(stock_code):
         return f"主資料源錯誤（twstock 失敗）：{e}"
 
 #  備援資料源
-def get_yfinance_price(stock_code):
+def get_yfinance_price(stock_code, text):
     try:
         ticker = yfinance.Ticker(f'{stock_code}.TW')
-        df = ticker.history(period="1d")
+        df = ticker.history(period= text)
         if not df.empty:
             latest = df.iloc[-1]
             return (
@@ -90,10 +111,10 @@ def get_yfinance_price(stock_code):
         return f"備援資料源錯誤（yfinance 失敗）：{e}"
 
 #  美股資料源
-def get_us_stock_price(stock_code):
+def get_us_stock_price(stock_code, text):
     try:
         us_ticker = yfinance.Ticker(stock_code)
-        us_df = us_ticker.history(period="1d")
+        us_df = us_ticker.history(period=text)
         us_info = us_ticker.info
         stock_name = us_info.get('shortName', "未知公司")
         if not us_df.empty:
@@ -114,15 +135,16 @@ def get_us_stock_price(stock_code):
 #  封裝使用的主接口（可以給 LINE Bot 使用）
 def get_stock_price(user_input):
     stock_code = resolve_stock_code(user_input)
+    text = parse_period(user_input)
     try:
         if stock_code.isdigit():
             result = get_twstock_price(stock_code)
             if result.startswith('無法取得') or result.startswith("主資料源錯誤"):
-                fallback_result = get_yfinance_price(stock_code)
+                fallback_result = get_yfinance_price(stock_code, text)
                 return f'主資料源錯誤，已使用備援資料\n{fallback_result}'
             return result
         elif stock_code.isalpha():
-            us_result = get_us_stock_price(stock_code)
+            us_result = get_us_stock_price(stock_code, text)
             return us_result
         else:
             return (
