@@ -122,17 +122,19 @@ def get_us_stock_price(stock_code, period):
         stock_name = us_info.get('shortName', "未知公司")
         if not us_df.empty:
             result_lines = [
+                f"{'='*20}\n"
                 f"股票代碼:{stock_code}\n"
                 f"公司名稱:{stock_name}\n"
                 f"查詢區間:{period}\n"
+                f"{'='*20}"
             ]
             for date, row in us_df.iterrows():
                 date_str = date.strftime('%Y-%m-%d')
                 line = (f"{date_str}\n"
                         f"開:{row['Open']:.2f}\n"
-                        f"收:{['Close']:.2f}\n"
-                        f"高:{['High']:.2f}\n"
-                        f"低:{['Low']:.2f}"
+                        f"收:{row['Close']:.2f}\n"
+                        f"高:{row['High']:.2f}\n"
+                        f"低:{row['Low']:.2f}"
                         )
                 result_lines.append(line)
             result_lines.append("資料來源:yfinance")
