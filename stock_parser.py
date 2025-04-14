@@ -64,8 +64,9 @@ def parse_period(user_input):
         "一年": "1y",
         "兩年": "2y"
     }
-    for day, period in period_mapping.items():
+    for day in period_mapping:
         if day in user_input:
+            period = period_mapping.get(day)
             return period
     return "1d"
 
