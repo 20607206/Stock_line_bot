@@ -84,7 +84,7 @@ def get_twstock_price(stock_code):
                 f"開盤價:{remove_trailing_zero(rt.get('open'))}\n"
                 f"最高價:{remove_trailing_zero(rt.get('high'))}\n"
                 f"最低價:{remove_trailing_zero(rt.get('low'))}\n"
-                f"來自主資料源(twstock)"
+                f"資料來源:twstock"
             )
         else:
             return f"無法取得股票代碼{stock_code}"
@@ -105,7 +105,7 @@ def get_yfinance_price(stock_code, period):
                 f"收盤價:{latest['Close']:.2f}\n"
                 f"最高價:{latest['High']:.2f}\n"
                 f"最低價:{latest['Low']:.2f}\n"
-                f"來自備援資料源(yfinance)"
+                f"資料來源:yfinance"
             )
         else:
             return f"備援資料源無法取得股票代碼{stock_code}"
@@ -120,15 +120,22 @@ def get_us_stock_price(stock_code, period):
         us_info = us_ticker.info or {}
         stock_name = us_info.get('shortName', "未知公司")
         if not us_df.empty:
-            us_latest = us_df.iloc[-1]
-            return (
+            result_lines = [
                 f"股票代碼:{stock_code}\n"
                 f"公司名稱:{stock_name}\n"
-                f"開盤價:{us_latest['Open']:.2f}\n"
-                f"收盤價:{us_latest['Close']:.2f}\n"
-                f"最高價:{us_latest['High']:.2f}\n"
-                f"最低價:{us_latest['Low']:.2f}"
-            )
+                f"查詢區間:{period}\n"
+            ]
+            for date, row in us_df.iterrows():
+                date_str = date.strftime('%Y-%m-%d')
+                line = (f"{date_str}\n"
+                        f"開:{row['Open']:.2f}\n"
+                        f"收:{['Close']:.2f}\n"
+                        f"高:{['High']:.2f}\n"
+                        f"低:{['Low']:.2f}"
+                        )
+                result_lines.append(line)
+            result_lines.append("資料來源:yfinance")
+            return "\n".join(result_lines)
         else:
             return f"美股資料源無法取得股票代碼{stock_code}"
     except Exception as e:
