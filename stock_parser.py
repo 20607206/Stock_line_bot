@@ -13,7 +13,7 @@ def resolve_stock_code(text):
     us_name_to_code = maps['us']['name_to_code']
     us_code_to_code = maps['us']['code_to_code']
 
-    text = text.upper()
+    text = text.lower()
     for name in tw_name_to_code:
         if name in text:
             tw_code = tw_name_to_code.get(name)
