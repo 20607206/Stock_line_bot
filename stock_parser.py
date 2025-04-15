@@ -1,4 +1,3 @@
-import datetime
 import json
 import yfinance
 import twstock
@@ -14,14 +13,14 @@ def resolve_stock_code(text):
     us_code_to_code = maps['us']['code_to_code']
 
     text = text.lower()
-    for name in tw_name_to_code:
-        if name in text:
-            tw_code = tw_name_to_code.get(name)
+    for tw_name in tw_name_to_code:
+        if tw_name in text:
+            tw_code = tw_name_to_code.get(tw_name)
             return tw_code
 
-    for name in us_name_to_code:
-        if name in text:
-            us_code = us_name_to_code.get(name)
+    for us_name in us_name_to_code:
+        if us_name in text:
+            us_code = us_name_to_code.get(us_name)
             return us_code
 
     for code in us_code_to_code:
@@ -98,16 +97,27 @@ def get_yfinance_price(stock_code, period):
         ticker = yfinance.Ticker(f'{stock_code}.TW')
         df = ticker.history(period= period)
         if not df.empty:
-            latest = df.iloc[-1]
-            return (
+            result_lines = [
+                f"{'=' * 20}\n"
                 f"股票代碼:{stock_code}\n"
                 f"公司名稱:{get_stock_name(stock_code)}\n"
-                f"開盤價:{latest['Open']:.2f}\n"
-                f"收盤價:{latest['Close']:.2f}\n"
-                f"最高價:{latest['High']:.2f}\n"
-                f"最低價:{latest['Low']:.2f}\n"
-                f"資料來源:yfinance"
-            )
+                f"查詢區間:{period}\n"
+                f"{'=' * 20}"
+            ]
+            for date, row in df.iterrows():
+                tw_date = date.strftime('%Y-%m-%d')
+                line = (
+                    f"{tw_date}\n"
+                    f"開:{row['Open']:.2f}\n"
+                    f"收:{row['Close']:.2f}\n"
+                    f"高:{row['High']:.2f}\n"
+                    f"低:{row['Low']:.2f}\n"
+                    f"{'=' * 20}"
+                )
+                result_lines.append(line)
+
+            result_lines.append("資料來源:yfinance")
+            return "\n".join(result_lines)
         else:
             return f"備援資料源無法取得股票代碼{stock_code}"
     except Exception as e:
@@ -129,13 +139,15 @@ def get_us_stock_price(stock_code, period):
                 f"{'='*20}"
             ]
             for date, row in us_df.iterrows():
-                date_str = date.strftime('%Y-%m-%d')
-                line = (f"{date_str}\n"
-                        f"開:{row['Open']:.2f}\n"
-                        f"收:{row['Close']:.2f}\n"
-                        f"高:{row['High']:.2f}\n"
-                        f"低:{row['Low']:.2f}"
-                        )
+                us_date = date.strftime('%Y-%m-%d')
+                line = (
+                    f"{us_date}\n"
+                    f"開:{row['Open']:.2f}\n"
+                    f"收:{row['Close']:.2f}\n"
+                    f"高:{row['High']:.2f}\n"
+                    f"低:{row['Low']:.2f}\n"
+                    f"{'='*20}"
+                )
                 result_lines.append(line)
             result_lines.append("資料來源:yfinance")
             return "\n".join(result_lines)
@@ -150,11 +162,15 @@ def get_stock_price(user_input):
     period = parse_period(user_input)
     try:
         if stock_code.isdigit():
-            result = get_twstock_price(stock_code)
-            if result.startswith('無法取得') or result.startswith("主資料源錯誤"):
-                fallback_result = get_yfinance_price(stock_code, period)
-                return f'主資料源錯誤，已使用備援資料\n{fallback_result}'
-            return result
+            if period == "1d":
+                tw_result = get_twstock_price(stock_code)
+                if tw_result.startswith('無法取得') or tw_result.startswith("主資料源錯誤"):
+                    fallback_result = get_yfinance_price(stock_code, period)
+                    return f'主資料源錯誤，已使用備援資料\n{fallback_result}'
+                return tw_result
+            else:
+                tw_result_period = get_yfinance_price(stock_code, period)
+                return tw_result_period
         elif stock_code.isalpha():
             us_result = get_us_stock_price(stock_code, period)
             return us_result
@@ -167,3 +183,9 @@ def get_stock_price(user_input):
             )
     except Exception as e:
         return e
+
+#  測試用
+'''
+test = get_stock_price(input("輸入要查詢股票:"))
+print(test)
+'''
