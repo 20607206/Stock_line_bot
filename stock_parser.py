@@ -66,11 +66,11 @@ def format_stock_text(df, period, stock_code, source):
     try:
         if not df.empty:
             result_text = [
-                f"{'=' * 25}\n"
+                f"{'=' * 24}\n"
                 f"股票代碼:{stock_code}\n"
                 f"公司名稱:{get_stock_name(stock_code)}\n"
                 f"查詢區間:{period}\n"
-                f"{'=' * 25}"
+                f"{'=' * 24}"
             ]
             for date, row in df.iterrows():
                 date = date.strftime('%Y-%m-%d')
@@ -78,7 +78,7 @@ def format_stock_text(df, period, stock_code, source):
                     f"📅{date}\n"
                     f"📈開:{row['Open']:.2f}｜收:{row['Close']:.2f}\n"
                     f"📊高:{row['High']:.2f}｜低:{row['Low']:.2f}\n"
-                    f"{'=' * 25}"
+                    f"{'=' * 24}"
                 )
                 result_text.append(line)
 
