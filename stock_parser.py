@@ -1,4 +1,5 @@
 import json
+import pandas as pd
 import yfinance
 import twstock
 
@@ -12,7 +13,7 @@ def resolve_stock_code(text):
     us_name_to_code = maps['us']['name_to_code']
     us_code_to_code = maps['us']['code_to_code']
 
-    text = text.lower()
+    text = text.upper()
     for tw_name in tw_name_to_code:
         if tw_name in text:
             tw_code = tw_name_to_code.get(tw_name)
@@ -35,10 +36,15 @@ def resolve_stock_code(text):
 
     return text
 
-#  處理台股編號對應名稱
+#  處理股票編號對應名稱
 def get_stock_name(stock_code):
     tw_code_to_name = maps['tw']['code_to_name']
-    return tw_code_to_name.get(stock_code, "未知公司")
+    us_code_to_name = maps['us']['code_to_name']
+
+    if stock_code.isdigit():
+        return tw_code_to_name.get(stock_code, "未知公司")
+    else:
+        return us_code_to_name.get(stock_code, "未知公司")
 
 #  資料處理工具
 def remove_trailing_zero(number_str):
@@ -48,44 +54,62 @@ def remove_trailing_zero(number_str):
 
 #  設定使用者搜尋天數(預設回傳1d)
 def parse_period(user_input):
-    period_mapping = {
-        "一天": "1d",
-        "一日": "1d",
-        "五天": "5d",
-        "五日": "5d",
-        "一週": "5d",
-        "一周": "5d",
-        "一個月": "1mo",
-        "一月": "1mo",
-        "三個月": "3mo",
-        "三月": "3mo",
-        "半年": "6mo",
-        "一年": "1y",
-        "兩年": "2y"
-    }
+    period_mapping = maps["period_mapping"]
     for day in period_mapping:
         if day in user_input:
             period = period_mapping.get(day)
             return period
     return "1d"
 
+#  處理文字輸出
+def format_stock_text(df, period, stock_code, source):
+    try:
+        if not df.empty:
+            result_text = [
+                f"{'=' * 25}\n"
+                f"股票代碼:{stock_code}\n"
+                f"公司名稱:{get_stock_name(stock_code)}\n"
+                f"查詢區間:{period}\n"
+                f"{'=' * 25}"
+            ]
+            for date, row in df.iterrows():
+                date = date.strftime('%Y-%m-%d')
+                line = (
+                    f"📅{date}\n"
+                    f"📈開:{row['Open']:.2f}｜收:{row['Close']:.2f}\n"
+                    f"📊高:{row['High']:.2f}｜低:{row['Low']:.2f}\n"
+                    f"{'=' * 25}"
+                )
+                result_text.append(line)
+
+            result_text.append(f"{source}")
+            return "\n".join(result_text)
+        else:
+            return f"{source}無法取得股票代碼:{stock_code}"
+    except Exception as e:
+        return f"{e}"
+
 #  主資料源
 def get_twstock_price(stock_code):
     try:
         realtime_data = twstock.realtime.get(stock_code)
-        if realtime_data and realtime_data['realtime']:
+        source = "資料來源:twstock(主資料)"
+        period = "1d"
 
+        if realtime_data and realtime_data['realtime']:
             info = realtime_data.get('info', {})
             rt = realtime_data.get('realtime', {})
-            return (
-                f"股票代碼:{info.get('code')}\n"
-                f"公司名稱:{info.get(('name'))}\n"
-                f"最新成交價:{remove_trailing_zero(rt.get('latest_trade_price'))}\n"
-                f"開盤價:{remove_trailing_zero(rt.get('open'))}\n"
-                f"最高價:{remove_trailing_zero(rt.get('high'))}\n"
-                f"最低價:{remove_trailing_zero(rt.get('low'))}\n"
-                f"資料來源:twstock"
-            )
+
+            df = pd.DataFrame([{
+                "Date": info.get("time"),
+                "Open": float(rt.get("open")),
+                "Close": float(rt.get("latest_trade_price")),
+                "High": float(rt.get("high")),
+                "Low": float(rt.get("low")),
+            }])
+            df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+            df.set_index("Date", inplace=True)
+            return df, period, stock_code, source
         else:
             return f"無法取得股票代碼{stock_code}"
     except Exception as e:
@@ -96,28 +120,9 @@ def get_yfinance_price(stock_code, period):
     try:
         ticker = yfinance.Ticker(f'{stock_code}.TW')
         df = ticker.history(period= period)
+        source = "資料來源:yfinance(備援資料)"
         if not df.empty:
-            result_lines = [
-                f"{'=' * 20}\n"
-                f"股票代碼:{stock_code}\n"
-                f"公司名稱:{get_stock_name(stock_code)}\n"
-                f"查詢區間:{period}\n"
-                f"{'=' * 20}"
-            ]
-            for date, row in df.iterrows():
-                tw_date = date.strftime('%Y-%m-%d')
-                line = (
-                    f"{tw_date}\n"
-                    f"開:{row['Open']:.2f}\n"
-                    f"收:{row['Close']:.2f}\n"
-                    f"高:{row['High']:.2f}\n"
-                    f"低:{row['Low']:.2f}\n"
-                    f"{'=' * 20}"
-                )
-                result_lines.append(line)
-
-            result_lines.append("資料來源:yfinance")
-            return "\n".join(result_lines)
+            return df, period, stock_code, source
         else:
             return f"備援資料源無法取得股票代碼{stock_code}"
     except Exception as e:
@@ -128,29 +133,9 @@ def get_us_stock_price(stock_code, period):
     try:
         us_ticker = yfinance.Ticker(stock_code)
         us_df = us_ticker.history(period=period)
-        us_info = us_ticker.info or {}
-        stock_name = us_info.get('shortName', "未知公司")
+        source = "資料來源:yfinance(美股資料)"
         if not us_df.empty:
-            result_lines = [
-                f"{'='*20}\n"
-                f"股票代碼:{stock_code}\n"
-                f"公司名稱:{stock_name}\n"
-                f"查詢區間:{period}\n"
-                f"{'='*20}"
-            ]
-            for date, row in us_df.iterrows():
-                us_date = date.strftime('%Y-%m-%d')
-                line = (
-                    f"{us_date}\n"
-                    f"開:{row['Open']:.2f}\n"
-                    f"收:{row['Close']:.2f}\n"
-                    f"高:{row['High']:.2f}\n"
-                    f"低:{row['Low']:.2f}\n"
-                    f"{'='*20}"
-                )
-                result_lines.append(line)
-            result_lines.append("資料來源:yfinance")
-            return "\n".join(result_lines)
+            return us_df, period, stock_code, source
         else:
             return f"美股資料源無法取得股票代碼{stock_code}"
     except Exception as e:
@@ -163,17 +148,25 @@ def get_stock_price(user_input):
     try:
         if stock_code.isdigit():
             if period == "1d":
-                tw_result = get_twstock_price(stock_code)
-                if tw_result.startswith('無法取得') or tw_result.startswith("主資料源錯誤"):
-                    fallback_result = get_yfinance_price(stock_code, period)
+                df, period, stock_code, source = get_twstock_price(stock_code)
+                tw_final_text = format_stock_text(df, period, stock_code, source)
+
+                if tw_final_text.startswith('無法取得') or tw_final_text.startswith("主資料源錯誤"):
+                    df, period, stock_code, source = get_yfinance_price(stock_code, period)
+                    fallback_result = format_stock_text(df, period, stock_code, source)
+
                     return f'主資料源錯誤，已使用備援資料\n{fallback_result}'
-                return tw_result
+
+                return tw_final_text
             else:
-                tw_result_period = get_yfinance_price(stock_code, period)
-                return tw_result_period
+                df, period, stock_code, source = get_yfinance_price(stock_code, period)
+                tw_period_final_text = format_stock_text(df, period, stock_code, source )
+
+                return tw_period_final_text
         elif stock_code.isalpha():
-            us_result = get_us_stock_price(stock_code, period)
-            return us_result
+            us_df, period, stock_code, source = get_us_stock_price(stock_code, period)
+            us_period_final_text = format_stock_text(us_df, period, stock_code, source)
+            return us_period_final_text
         else:
             return (
                 f'股票代碼格式錯誤:{stock_code}\n'
@@ -185,7 +178,6 @@ def get_stock_price(user_input):
         return e
 
 #  測試用
-'''
+
 test = get_stock_price(input("輸入要查詢股票:"))
 print(test)
-'''
