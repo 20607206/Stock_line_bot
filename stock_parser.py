@@ -178,7 +178,6 @@ def get_stock_price(user_input):
         return e
 
 #  測試用
-'''
+
 test = get_stock_price(input("輸入要查詢股票:"))
 print(test)
-'''
