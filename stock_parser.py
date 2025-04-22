@@ -61,8 +61,14 @@ def parse_period(user_input):
             return period
     return "1d"
 
+def draw_stock_chart(df, period, stock_code, source):
+    pass
+
 #  處理文字輸出
-def format_stock_text(df, period, stock_code, source):
+def format_stock_text(df):
+    stock_code = df["stock_code"].iloc[0]
+    period = df["period"].iloc[0]
+    source = df["source"].iloc[0]
     try:
         if not df.empty:
             result_text = [
@@ -101,15 +107,18 @@ def get_twstock_price(stock_code):
             rt = realtime_data.get('realtime', {})
 
             df = pd.DataFrame([{
+                "stock_code": stock_code,
+                "period": period,
                 "Date": info.get("time"),
                 "Open": float(rt.get("open")),
                 "Close": float(rt.get("latest_trade_price")),
                 "High": float(rt.get("high")),
                 "Low": float(rt.get("low")),
+                "source": source,
             }])
             df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
             df.set_index("Date", inplace=True)
-            return df, period, stock_code, source
+            return df
         else:
             return f"無法取得股票代碼{stock_code}"
     except Exception as e:
@@ -120,9 +129,11 @@ def get_yfinance_price(stock_code, period):
     try:
         ticker = yfinance.Ticker(f'{stock_code}.TW')
         df = ticker.history(period= period)
-        source = "資料來源:yfinance(備援資料)"
+        df["stock_code"] = stock_code
+        df["period"] = period
+        df["source"] = "資料來源:yfinance(備援資料)"
         if not df.empty:
-            return df, period, stock_code, source
+            return df
         else:
             return f"備援資料源無法取得股票代碼{stock_code}"
     except Exception as e:
@@ -133,9 +144,11 @@ def get_us_stock_price(stock_code, period):
     try:
         us_ticker = yfinance.Ticker(stock_code)
         us_df = us_ticker.history(period=period)
-        source = "資料來源:yfinance(美股資料)"
+        us_df["stock_code"] = stock_code
+        us_df["period"] = period
+        us_df["source"] = "資料來源:yfinance(美股資料)"
         if not us_df.empty:
-            return us_df, period, stock_code, source
+            return us_df
         else:
             return f"美股資料源無法取得股票代碼{stock_code}"
     except Exception as e:
@@ -148,24 +161,24 @@ def get_stock_price(user_input):
     try:
         if stock_code.isdigit():
             if period == "1d":
-                df, period, stock_code, source = get_twstock_price(stock_code)
-                tw_final_text = format_stock_text(df, period, stock_code, source)
+                df = get_twstock_price(stock_code)
+                tw_final_text = format_stock_text(df)
 
                 if tw_final_text.startswith('無法取得') or tw_final_text.startswith("主資料源錯誤"):
-                    df, period, stock_code, source = get_yfinance_price(stock_code, period)
-                    fallback_result = format_stock_text(df, period, stock_code, source)
+                    df = get_yfinance_price(stock_code, period)
+                    fallback_result = format_stock_text(df)
 
                     return f'主資料源錯誤，已使用備援資料\n{fallback_result}'
 
                 return tw_final_text
             else:
-                df, period, stock_code, source = get_yfinance_price(stock_code, period)
-                tw_period_final_text = format_stock_text(df, period, stock_code, source )
+                df = get_yfinance_price(stock_code, period)
+                tw_period_final_text = format_stock_text(df)
 
                 return tw_period_final_text
         elif stock_code.isalpha():
-            us_df, period, stock_code, source = get_us_stock_price(stock_code, period)
-            us_period_final_text = format_stock_text(us_df, period, stock_code, source)
+            us_df = get_us_stock_price(stock_code, period)
+            us_period_final_text = format_stock_text(us_df)
             return us_period_final_text
         else:
             return (
@@ -179,6 +192,6 @@ def get_stock_price(user_input):
 
 #  測試用
 '''
-test = get_stock_price(input("輸入要查詢股票:"))
+test = get_stock_price(input("?:"))
 print(test)
 '''
