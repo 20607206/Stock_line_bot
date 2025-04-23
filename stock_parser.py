@@ -61,6 +61,7 @@ def parse_period(user_input):
             return period
     return "1d"
 
+#  處理圖片輸出
 def draw_stock_chart(df, period, stock_code, source):
     pass
 
@@ -188,7 +189,7 @@ def get_stock_price(user_input):
                 f'美股=>AAPL'
             )
     except Exception as e:
-        return e
+        return f"{e}"
 
 #  測試用
 '''
