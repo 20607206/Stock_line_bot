@@ -138,7 +138,7 @@ def format_stock_text(df):
         f"股票代碼:{stock_code}\n"
         f"股票名稱:{name}\n"
         f"查詢區間:{period}\n"
-        f"{'=' * 24}\n"
+        f"{'=' * 24}"
     ]
     for date, row in df.iterrows():
         date = date.strftime("%Y-%m-%d  %H-%M")
@@ -146,7 +146,7 @@ def format_stock_text(df):
             f"📅{date}\n"
             f"📈開:{float(row['Open']):.2f}｜收:{float(row['Close']):.2f}\n"
             f"📊高:{float(row['High']):.2f}｜低:{float(row['Low']):.2f}\n"
-            f"{'=' * 24}\n"
+            f"{'=' * 24}"
          )
         result_text.append(data_line)
 
