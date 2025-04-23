@@ -84,8 +84,9 @@ def get_twstock_price(stock_code):
             df["date"] = pd.to_datetime(df["date"], errors="coerce")
             df.set_index("date", inplace=True)
             return df
+        return pd.DataFrame()
     except Exception as e:
-        return f"{e}"
+        return pd.DataFrame()
 
 # yfinance：台股或美股多日查詢
 def get_yfinance_price(stock_code, period, is_tw = True):
@@ -100,7 +101,7 @@ def get_yfinance_price(stock_code, period, is_tw = True):
         pd.set_option('display.width', None)
         return df
     except Exception as e:
-        return f"{e}"
+        return pd.DataFrame()
 
 #  查詢函式
 def get_stock_data(stock_code, period):
@@ -154,5 +155,7 @@ def format_stock_text(df):
 
     return "\n".join(result_text)
 
+'''
 df = line_text("00881")
 print(df)
+'''
