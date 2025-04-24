@@ -118,13 +118,23 @@ def get_stock_data(stock_code, period):
 
 #  包裝對接Line bot
 def line_text(user_input):
-    code = resolve_stock_code(user_input)
-    period = parse_period(user_input)
-    respond = get_stock_data(code, period)
-    result_text = format_stock_text(respond)
-    return result_text
+    try:
+        stock_code = resolve_stock_code(user_input)
+        period = parse_period(user_input)
+        respond = get_stock_data(stock_code, period)
+        result_text = format_stock_text(respond)
+        return result_text
+    except:
+        return f"請檢查股票代碼是否正確"
 
-# 輸出為文字
+#  安全轉換
+def safe_float(value):
+    try:
+        return f"{float(value):.2f}"
+    except:
+        return "--"
+
+#  輸出為文字
 def format_stock_text(df):
     if df.empty:
         return "無法取得資料，請確認股票代碼與期間"
@@ -145,8 +155,8 @@ def format_stock_text(df):
         date = date.strftime("%Y-%m-%d  %H-%M")
         data_line = (
             f"📅{date}\n"
-            f"📈開:{float(row['Open']):.2f}｜收:{float(row['Close']):.2f}\n"
-            f"📊高:{float(row['High']):.2f}｜低:{float(row['Low']):.2f}\n"
+            f"📈開:{safe_float(row['Open'])}｜收:{safe_float(row['Close'])}\n"
+            f"📊高:{safe_float(row['High'])}｜低:{safe_float(row['Low'])}\n"
             f"{'=' * 24}"
          )
         result_text.append(data_line)
@@ -155,7 +165,9 @@ def format_stock_text(df):
 
     return "\n".join(result_text)
 
+
+#  test
 '''
-df = line_text("00881")
+df = line_text("台積電最近五天")
 print(df)
 '''
