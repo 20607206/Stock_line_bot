@@ -1,7 +1,9 @@
+import datetime
 import json
 import twstock
 import yfinance
 import pandas as pd
+import re
 
 with open("stock_bidirectional_map.json", "r", encoding="utf-8") as stock:
     maps = json.load(stock)
@@ -14,27 +16,27 @@ def resolve_stock_code(user_input):
     us_code_to_code = maps['us']['code_to_code']
 
     user_input = user_input.upper()
+
+    if user_input in tw_code_to_code:
+        return user_input
+    if user_input in us_code_to_code:
+        return user_input
+
     for tw_name in tw_name_to_code:
         if tw_name in user_input:
-            tw_code = tw_name_to_code.get(tw_name)
-            return tw_code
-
+            code = tw_name_to_code.get(tw_name)
+            return code
     for us_name in us_name_to_code:
         if us_name in user_input:
-            us_code = us_name_to_code.get(us_name)
-            return us_code
+            code = us_name_to_code.get(us_name)
+            return code
 
-    for code in us_code_to_code:
-        if code in user_input:
-            us_code = us_code_to_code.get(code)
-            return us_code
+    possible_codes = re.findall(r'\d{4,6}|[A-Z]+', user_input)
+    for code in possible_codes:
+        if code in tw_code_to_code or us_code_to_code or code:
+            return code
 
-    for code in tw_code_to_code:
-        if code in user_input:
-            tw_code = tw_code_to_code.get(code)
-            return tw_code
-
-    return user_input
+    return f"{user_input}"
 
 #  設定使用者搜尋天數(預設回傳1d)
 def parse_period(user_input):
@@ -143,7 +145,8 @@ def format_stock_text(df):
     name = df["name"].iloc[0]
     source = df["source"].iloc[0]
     period = df["period"].iloc[0]
-
+    time = datetime.datetime.now()
+    parse_time = time.strftime("%H:%M:%S")
     result_text = [
         f"{'=' * 24}\n"
         f"股票代碼:{stock_code}\n"
@@ -152,22 +155,26 @@ def format_stock_text(df):
         f"{'=' * 24}"
     ]
     for date, row in df.iterrows():
-        date = date.strftime("%Y-%m-%d  %H-%M")
+        date = date.strftime("%Y-%m-%d")
+
+
         data_line = (
-            f"📅{date}\n"
+            f"📅資料日期:{date}\n"
             f"📈開:{safe_float(row['Open'])}｜收:{safe_float(row['Close'])}\n"
             f"📊高:{safe_float(row['High'])}｜低:{safe_float(row['Low'])}\n"
+            
             f"{'=' * 24}"
          )
         result_text.append(data_line)
 
+    result_text.append(f"查詢時間:{parse_time}")
     result_text.append(source)
 
     return "\n".join(result_text)
 
 
 #  test
-'''
-df = line_text("台積電最近五天")
+"""
+df = line_text("6208")
 print(df)
-'''
+"""
