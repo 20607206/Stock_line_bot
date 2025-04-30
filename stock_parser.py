@@ -1,12 +1,25 @@
 import datetime
 import json
+import time
 import twstock
 import yfinance
 import pandas as pd
 import re
+import schedule
+import SQL
+import logging
+
+logging.basicConfig(
+    filename="info.log",
+    filemode="a",
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 with open("stock_bidirectional_map.json", "r", encoding="utf-8") as stock:
     maps = json.load(stock)
+    stock_list = maps['user_subscribe']
 
 #  辨識文字內容
 def resolve_stock_code(user_input):
@@ -67,8 +80,8 @@ def is_tw_stock(stock_code):
 def get_twstock_price(stock_code):
     try:
         realtime_data = twstock.realtime.get(stock_code)
-        source = "資料來源:twstock(主資料)"
         period = "1d"
+        source = "資料來源:twstock(主資料)"
         if realtime_data and realtime_data["realtime"]:
             info = realtime_data.get("info", {})
             rt = realtime_data.get("realtime", {})
@@ -100,7 +113,7 @@ def get_yfinance_price(stock_code, period, is_tw = True):
         df["name"] = get_stock_name(stock_code)
         df["source"] = f"資料來源:yfinance({'台股備援' if is_tw else '美股'})"
         df["period"] = period
-        pd.set_option('display.width', None)
+        pd.set_option('display.max_columns', None)
         return df
     except Exception as e:
         return pd.DataFrame()
@@ -126,8 +139,8 @@ def line_text(user_input):
         respond = get_stock_data(stock_code, period)
         result_text = format_stock_text(respond)
         return result_text
-    except:
-        return f"請檢查股票代碼是否正確"
+    except Exception as e:
+        return f"請檢查股票代碼是否正確{e}"
 
 #  安全轉換
 def safe_float(value):
@@ -146,7 +159,7 @@ def format_stock_text(df):
     source = df["source"].iloc[0]
     period = df["period"].iloc[0]
     time = datetime.datetime.now()
-    parse_time = time.strftime("%H:%M:%S")
+    query_time = time.strftime("%H:%M:%S")
     result_text = [
         f"{'=' * 24}\n"
         f"股票代碼:{stock_code}\n"
@@ -155,11 +168,11 @@ def format_stock_text(df):
         f"{'=' * 24}"
     ]
     for date, row in df.iterrows():
-        date = date.strftime("%Y-%m-%d")
+        data_date = date.strftime("%Y-%m-%d")
 
 
         data_line = (
-            f"📅資料日期:{date}\n"
+            f"📅資料日期:{data_date}\n"
             f"📈開:{safe_float(row['Open'])}｜收:{safe_float(row['Close'])}\n"
             f"📊高:{safe_float(row['High'])}｜低:{safe_float(row['Low'])}\n"
             
@@ -167,14 +180,70 @@ def format_stock_text(df):
          )
         result_text.append(data_line)
 
-    result_text.append(f"查詢時間:{parse_time}")
+    result_text.append(f"查詢時間:{query_time}")
     result_text.append(source)
 
     return "\n".join(result_text)
 
 
-#  test
-"""
-df = line_text("6208")
-print(df)
-"""
+
+class StockJobManager:
+    def __init__(self, stock_list):
+        self.stock_list = stock_list
+        self.period = "1d"
+
+
+    def job1(self):
+        logging.info("Job1 is Working...")
+        try:
+            self.df_list = pd.DataFrame()
+            for code in self.stock_list:
+                df = self.get_yfinance_price(code, self.period)
+                self.df_list = pd.concat([self.df_list, df])
+            if self.df_list is not None:
+                logging.info(f"找到資料一共{len(self.df_list)}比")
+            else:
+                logging.error("⚠️ 沒有抓取到資料")
+        except Exception as e:
+            logging.warning(f"{e}")
+
+    def job2(self):
+        logging.info("Job2 is Working...")
+        try:
+            if not self.df_list.empty:
+                logging.info("資料儲存中...")
+                SQL.save_stock_to_mysql(self.df_list)
+                logging.info("儲存完成")
+                self.df_list = pd.DataFrame()
+            else:
+                logging.error("⚠️ 沒有資料")
+        except Exception as e:
+            logging.warning(f"{e}", exc_info=True)
+
+    @staticmethod
+    def get_yfinance_price(stock_code, period, is_tw=True):
+        try:
+            code = f"{stock_code}.TW" if is_tw else stock_code
+            ticker = yfinance.Ticker(code)
+            df = ticker.history(period=period)
+            df["code"] = stock_code
+            df["name"] = get_stock_name(stock_code)
+            df["source"] = f"資料來源:yfinance({'台股備援' if is_tw else '美股'})"
+            df["period"] = period
+            pd.set_option('display.max_columns', None)
+            return df
+        except Exception as e:
+            logging.warning(f"{e}", exc_info=True)
+            return pd.DataFrame()
+
+    def start_schedule(self):
+        schedule.every().day.at("14:30:30").do(self.job1)
+        schedule.every().day.at("14:31").do(self.job2)
+
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+
+if __name__ == "__main__":
+    manager = StockJobManager(stock_list)
+    manager.start_schedule()
