@@ -97,9 +97,9 @@ class StockJobManager:
 
         logging.info("Work completed")
 
-if __name__ == "__main__":
-    with open("stock_bidirectional_map.json", "r", encoding="utf-8") as stock:
-        maps = json.load(stock)
-        stock_list = maps['user_subscribe']
-    manager = StockJobManager(stock_list)
-    manager.start_schedule()
+# if __name__ == "__main__":
+#     with open("stock_bidirectional_map.json", "r", encoding="utf-8") as stock:
+#         maps = json.load(stock)
+#         stock_list = maps['user_subscribe']
+#     manager = StockJobManager(stock_list)
+#     manager.start_schedule()

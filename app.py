@@ -35,9 +35,9 @@ def handle_message(event):
 
 
 if __name__ == "__main__":
-    with open("stock_bidirectional_map.json", "r", encoding="utf-8") as stock:
-        maps = json.load(stock)
-        stock_list = maps['user_subscribe']
+    # with open("stock_bidirectional_map.json", "r", encoding="utf-8") as stock:
+    #     maps = json.load(stock)
+    #     stock_list = maps['user_subscribe']
     app.run()
-    manager = StockJobManager(stock_list)
-    manager.start_schedule()
+    # manager = StockJobManager(stock_list)
+    # manager.start_schedule()
