@@ -24,3 +24,6 @@
 2025-05-02 16:55:57 [INFO] root: Delete code : 0050
 2025-05-02 16:55:57 [INFO] root: Starting remove 2330
 2025-05-02 16:55:57 [INFO] root: Delete code : 2330
+2025-05-02 17:08:20 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-05-02 17:08:20 [INFO] werkzeug: [33mPress CTRL+C to quit[0m

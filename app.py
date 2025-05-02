@@ -41,3 +41,5 @@ if __name__ == "__main__":
     app.run()
     # manager = StockJobManager(stock_list)
     # manager.start_schedule()
+
+
