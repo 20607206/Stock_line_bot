@@ -40,7 +40,7 @@ class StockJobManager:
             else:
                 print("No data !")
         except Exception as e:
-            print(f"{e}", exc_info=True)
+            print(f"{e}")
 
     def job3(self):
         print("Job3 Start clearing stock data...")
@@ -54,7 +54,7 @@ class StockJobManager:
                     print(f"Delete code : {code}")
 
         except Exception as e:
-            print(f"{e}", exc_info=True)
+            print(f"{e}")
 
 
     @staticmethod
@@ -70,7 +70,7 @@ class StockJobManager:
             pd.set_option('display.max_columns', None)
             return df
         except Exception as e:
-            print(f"{e}", exc_info=True)
+            print(f"{e}")
             return pd.DataFrame()
 
     def start_schedule(self):

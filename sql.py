@@ -19,7 +19,8 @@ def connector_mysql():
         )
         return conn
     except Exception as e:
-        return f"轉換錯誤: {e}"
+        print(f"MySQL連線錯誤：{e}")
+        return None
 
 #  Dataframe轉成SQL
 def to_sql(df):
@@ -50,15 +51,15 @@ def to_sql(df):
 
         return stock_list
     except Exception  as e:
-        return f"轉換錯誤: {e}"
+        print(f"轉換錯誤: {e}")
+        return None
 
 #  存入MySQL
 def save_stock_to_mysql(df):
     conn = connector_mysql()
     stock_info_list = to_sql(df)
+    cursor = conn.cursor()
     try:
-        cursor = conn.cursor()
-
         sql = """
         INSERT INTO `stock_list` (`code`, `name`, `period`, `open`, `close`, `high`, `low`, `source`, `data_date`, `query_time`)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -69,7 +70,7 @@ def save_stock_to_mysql(df):
             cursor.execute(sql, values)
 
     except Exception as e:
-        return f"轉換錯誤: {e}"
+        print(f"存入失敗: {e}")
     conn.commit()
     cursor.close()
     conn.close()
@@ -78,34 +79,40 @@ def save_stock_to_mysql(df):
 def load_stock_from_mysql(stock_code):
     conn = connector_mysql()
     cursor = conn.cursor()
+    try:
+        sql = "SELECT code, name, period, open, close, high, low, source, data_date, query_time FROM `stock_list` WHERE `code`= %s;"
+        values = (stock_code,)
 
-    sql = "SELECT code, name, period, open, close, high, low, source, data_date, query_time FROM `stock_list` WHERE `code`= %s;"
-    values = (stock_code,)
+        cursor.execute(sql, values)
 
-    cursor.execute(sql, values)
-
-    record = cursor.fetchall()
-    for row in record:
-        df = pd.DataFrame([row], columns=('code', 'name', 'period', 'open', 'close', 'high', 'low', 'source', 'data_date', 'query_time'))
-        df["data_date"] = pd.to_datetime(df["data_date"], errors="coerce")
-        df.set_index("data_date", inplace=True)
-        return (df)
+        record = cursor.fetchall()
+        for row in record:
+            df = pd.DataFrame([row], columns=('code', 'name', 'period', 'open', 'close', 'high', 'low', 'source', 'data_date', 'query_time'))
+            df["data_date"] = pd.to_datetime(df["data_date"], errors="coerce")
+            df.set_index("data_date", inplace=True)
+            return (df)
+    except Exception as e:
+        print(f"提取失敗:{e}")
+        return None
 
     cursor.close()
     conn.close()
 
 #  刪除mysql資料
 def remove_sql(stock_code):
-    pass
     conn = connector_mysql()
     cursor = conn.cursor()
+    try:
+        sql_delete = "DELETE FROM `stock_list` WHERE code= %s"
+        values = (stock_code,)
 
-    sql_delete = "DELETE FROM `stock_list` WHERE code= %s"
-    values = (stock_code,)
+        cursor.execute(sql_delete, values)
 
-    cursor.execute(sql_delete, values)
+        conn.commit()
+    except Exception as e:
+        print(f"刪除失敗{e}")
+        return None
 
-    conn.commit()
     cursor.close()
     conn.close()
 
