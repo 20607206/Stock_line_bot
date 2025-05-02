@@ -1,18 +1,9 @@
-import logging
 import json
 import time
 import pandas as pd
 import yfinance
 import sql
 import stock_parser
-
-logging.basicConfig(
-    filename="info.log",
-    filemode="a",
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
 
 class StockJobManager:
     def __init__(self, stock_list):
@@ -21,49 +12,49 @@ class StockJobManager:
 
 
     def job1(self):
-        logging.info("Job1 is Working...")
+        print("Job1 is Working...")
         try:
             self.df_list = pd.DataFrame()
             for code in self.stock_list:
                 df = self.get_yfinance_price(code, self.period)
                 if df.empty:
-                    logging.warning(f"{code} Data not found, try again in 10 seconds")
+                    print(f"{code} Data not found, try again in 10 seconds")
                     time.sleep(10)
                     df = self.get_yfinance_price(code, self.period)
                 self.df_list = pd.concat([self.df_list, df])
             if self.df_list is not None:
-                logging.info(f"found data total:{len(self.df_list)}")
+                print(f"found data total:{len(self.df_list)}")
             else:
-                logging.error("No data !")
+                print("No data !")
         except Exception as e:
-            logging.warning(f"{e}")
+            print(f"{e}")
 
     def job2(self):
-        logging.info("Job2 is Working...")
+        print("Job2 is Working...")
         try:
             if not self.df_list.empty:
-                logging.info("Data is being stored...")
+                print("Data is being stored...")
                 sql.save_stock_to_mysql(self.df_list)
-                logging.info("Storage completed")
+                print("Storage completed")
                 self.df_list = pd.DataFrame()
             else:
-                logging.error("No data !")
+                print("No data !")
         except Exception as e:
-            logging.warning(f"{e}", exc_info=True)
+            print(f"{e}", exc_info=True)
 
     def job3(self):
-        logging.info("Job3 Start clearing stock data...")
+        print("Job3 Start clearing stock data...")
         try:
             if not self.stock_list:
-                logging.error("No stock symbols to delete")
+                print("No stock symbols to delete")
             else:
                 for code in self.stock_list:
-                    logging.info(f"Starting remove {code}")
+                    print(f"Starting remove {code}")
                     sql.remove_sql(code)
-                    logging.info(f"Delete code : {code}")
+                    print(f"Delete code : {code}")
 
         except Exception as e:
-            logging.warning(f"{e}", exc_info=True)
+            print(f"{e}", exc_info=True)
 
 
     @staticmethod
@@ -79,23 +70,23 @@ class StockJobManager:
             pd.set_option('display.max_columns', None)
             return df
         except Exception as e:
-            logging.warning(f"{e}", exc_info=True)
+            print(f"{e}", exc_info=True)
             return pd.DataFrame()
 
     def start_schedule(self):
-        logging.info("Start Job3 ")
+        print("Start Job3 ")
         self.job3()
         time.sleep(5)
 
-        logging.info("Start Job1 ")
+        print("Start Job1 ")
         self.job1()
         time.sleep(5)
 
-        logging.info("Start Job2 ")
+        print("Start Job2 ")
         self.job2()
         time.sleep(5)
 
-        logging.info("Work completed")
+        print("Work completed")
 
 if __name__ == "__main__":
     with open("stock_bidirectional_map.json", "r", encoding="utf-8") as stock:
