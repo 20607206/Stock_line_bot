@@ -1,15 +1,27 @@
-2025-05-01 16:13:54 [INFO] root: Job1 is Working...
-2025-05-01 16:13:55 [INFO] root: §ä¨ì¸ê®Æ¤@¦@4¤ñ
-2025-05-01 16:13:55 [INFO] root: Job2 is Working...
-2025-05-01 16:13:55 [INFO] root: ¸ê®ÆÀx¦s¤¤...
-2025-05-01 16:13:55 [INFO] root: Àx¦s§¹¦¨
-2025-05-01 17:29:13 [INFO] root: Job1 is Working...
-2025-05-01 17:29:15 [INFO] root: §ä¨ì¸ê®Æ¤@¦@4¤ñ
-2025-05-01 17:29:15 [INFO] root: Job2 is Working...
-2025-05-01 17:29:15 [INFO] root: ¸ê®ÆÀx¦s¤¤...
-2025-05-01 17:29:15 [INFO] root: Àx¦s§¹¦¨
-2025-05-01 17:29:15 [INFO] root: Job3 is Working
-2025-05-01 17:29:15 [INFO] root: Delete code : 00881
-2025-05-01 17:29:15 [INFO] root: Delete code : 0056
-2025-05-01 17:29:15 [INFO] root: Delete code : 0050
-2025-05-01 17:29:15 [INFO] root: Delete code : 2330
+2025-05-02 16:13:05 [INFO] root: Start Job3 
+2025-05-02 16:13:05 [INFO] root: Job3 Start clearing stock data...
+2025-05-02 16:13:05 [INFO] root: Starting remove 00881
+2025-05-02 16:13:05 [INFO] root: Delete code : 00881
+2025-05-02 16:13:05 [INFO] root: Starting remove 0056
+2025-05-02 16:13:05 [INFO] root: Delete code : 0056
+2025-05-02 16:13:05 [INFO] root: Starting remove 0050
+2025-05-02 16:13:05 [INFO] root: Delete code : 0050
+2025-05-02 16:13:05 [INFO] root: Starting remove 2330
+2025-05-02 16:13:05 [INFO] root: Delete code : 2330
+2025-05-02 16:13:10 [INFO] root: Start Job1 
+2025-05-02 16:13:10 [INFO] root: Job1 is Working...
+2025-05-02 16:13:13 [INFO] root: found data total:4
+2025-05-02 16:13:18 [INFO] root: Start Job2 
+2025-05-02 16:13:18 [INFO] root: Job2 is Working...
+2025-05-02 16:13:18 [INFO] root: Data is being stored...
+2025-05-02 16:13:18 [INFO] root: Storage completed
+2025-05-02 16:13:23 [INFO] root: Work completed
+2025-05-02 16:44:09 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-05-02 16:44:09 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2025-05-02 16:45:05 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-05-02 16:45:05 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2025-05-02 16:45:44 [INFO] root: Start Job3 
+2025-05-02 16:45:44 [INFO] root: Job3 Start clearing stock data...
+2025-05-02 16:45:44 [INFO] root: Starting remove 00881
