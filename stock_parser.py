@@ -78,18 +78,19 @@ def get_twstock_price(stock_code):
                 "name": info.get("name"),
                 "period": period,
                 "date": info.get("time"),
-                "Open": rt.get("open"),
-                "Close": rt.get("latest_trade_price"),
-                "High": rt.get("high"),
-                "Low": rt.get("low"),
+                "Open": float(rt.get("open")),
+                "Close": float(rt.get("latest_trade_price")),
+                "High": float(rt.get("high")),
+                "Low": float(rt.get("low")),
                 "source": source
             }])
             df["date"] = pd.to_datetime(df["date"], errors="coerce")
             df.set_index("date", inplace=True)
+            pd.set_option('display.max_columns', None)
             return df
-        return pd.DataFrame()
+        return None #pd.DataFrame()
     except Exception as e:
-        return pd.DataFrame()
+        return f"{e}"#pd.DataFrame()
 
 # yfinance：台股或美股多日查詢
 def get_yfinance_price(stock_code, period, is_tw = True):

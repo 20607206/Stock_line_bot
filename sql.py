@@ -68,7 +68,7 @@ def save_stock_to_mysql(df):
         for stock_info in stock_info_list:
             values = stock_info
             cursor.execute(sql, values)
-
+        print("儲存成功")
     except Exception as e:
         print(f"存入失敗: {e}")
     conn.commit()
@@ -121,10 +121,7 @@ def remove_sql(stock_code):
     cursor.close()
     conn.close()
 
-# aaa = to_sql(get_yfinance_price("2330", "1d"))
-# print(aaa)
-# save_stock_to_mysql(aaa)
-
+#  測試連線
 def test_mysql_connection():
     try:
         conn = connector_mysql()
@@ -135,13 +132,3 @@ def test_mysql_connection():
             print("❌ 無法連線到 MySQL")
     except Exception as e:
         print(f"⚠️ 連線錯誤: {e}")
-
-# aaa = get_yfinance_price("2330", "1d")
-# print(aaa)
-# bbb = to_sql(aaa)
-# print(bbb)
-# save_stock_to_mysql(bbb)
-from stock_parser import format_stock_text
-a = load_stock_from_mysql("2330", "1d")
-b = format_stock_text(a)
-print(b)
