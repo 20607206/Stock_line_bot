@@ -61,7 +61,7 @@ def save_stock_to_mysql(df):
     cursor = conn.cursor()
     try:
         sql = """
-        INSERT INTO `stock_list` (`code`, `name`, `period`, `open`, `close`, `high`, `low`, `source`, `data_date`, `query_time`)
+        INSERT INTO `stock_list` (`code`, `name`, `period`, `Open`, `Close`, `High`, `Low`, `source`, `data_date`, `query_time`)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
@@ -81,18 +81,18 @@ def load_stock_from_mysql(stock_code, period):
     conn = connector_mysql()
     cursor = conn.cursor()
     try:
-        sql = "SELECT code, name, period, open, close, high, low, source, data_date, query_time FROM `stock_list` WHERE `code`= %s AND `period`= %s;"
+        sql = "SELECT code, name, period, Open, Close, High, Low, source, data_date, query_time FROM `stock_list` WHERE `code`= %s AND `period`= %s;"
         values = (stock_code, period,)
-
         cursor.execute(sql, values)
         record = cursor.fetchall()
+
         if not record:
             df = get_stock_data(stock_code, period)
             save_stock_to_mysql(df)
             return df
         else:
             for row in record:
-                df = pd.DataFrame([row], columns=('code', 'name', 'period', 'open', 'close', 'high', 'low', 'source', 'data_date', 'query_time'))
+                df = pd.DataFrame([row], columns=('code', 'name', 'period', 'Open', 'Close', 'High', 'Low', 'source', 'data_date', 'query_time'))
                 df["data_date"] = pd.to_datetime(df["data_date"], errors="coerce")
                 df.set_index("data_date", inplace=True)
                 return (df)
@@ -141,5 +141,7 @@ def test_mysql_connection():
 # bbb = to_sql(aaa)
 # print(bbb)
 # save_stock_to_mysql(bbb)
-
-load_stock_from_mysql("2330", "1d")
+from stock_parser import format_stock_text
+a = load_stock_from_mysql("2330", "1d")
+b = format_stock_text(a)
+print(b)
