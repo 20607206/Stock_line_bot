@@ -4,7 +4,6 @@ import twstock
 import yfinance
 import pandas as pd
 import re
-from sql import load_stock_from_mysql
 
 with open("stock_bidirectional_map.json", "r", encoding="utf-8") as stock:
     maps = json.load(stock)
@@ -122,6 +121,7 @@ def get_stock_data(stock_code, period):
 
 #  包裝對接Line bot
 def line_text(user_input):
+    from sql import load_stock_from_mysql
     try:
         stock_code = resolve_stock_code(user_input)
         period = parse_period(user_input)
