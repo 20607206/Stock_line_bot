@@ -174,6 +174,11 @@ def format_stock_text(df):
 
     return "\n".join(result_text)
 
+c= line_text("00881")
+a = get_stock_data("00881", "1d")
+b = format_stock_text(a)
+print(c)
+
 
 
 

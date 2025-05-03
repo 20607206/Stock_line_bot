@@ -81,8 +81,8 @@ def load_stock_from_mysql(stock_code, period):
     conn = connector_mysql()
     cursor = conn.cursor()
     try:
-        sql = "SELECT code, name, period, Open, Close, High, Low, source, data_date, query_time FROM `stock_list` WHERE `code`= %s AND `period`= %s;"
-        values = (stock_code, period)
+        sql = "SELECT code, name, period, open, close, high, low, source, data_date, query_time FROM `stock_list` WHERE `code`= %s AND `period`= %s;"
+        values = (stock_code, period,)
 
         cursor.execute(sql, values)
         record = cursor.fetchall()
