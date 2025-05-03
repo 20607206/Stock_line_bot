@@ -3,7 +3,6 @@ import datetime
 import pandas as pd
 from dotenv import load_dotenv
 import os
-from stock_parser import get_stock_data, line_text
 
 load_dotenv()
 
@@ -78,6 +77,7 @@ def save_stock_to_mysql(df):
 
 #  從MySQL提取資料
 def load_stock_from_mysql(stock_code, period):
+    from stock_parser import get_stock_data
     conn = connector_mysql()
     cursor = conn.cursor()
     try:
