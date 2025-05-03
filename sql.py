@@ -3,7 +3,7 @@ import datetime
 import pandas as pd
 from dotenv import load_dotenv
 import os
-from stock_parser import get_yfinance_price
+from stock_parser import get_stock_data, line_text
 
 load_dotenv()
 
@@ -29,9 +29,10 @@ def to_sql(df):
         # code = str(df["code"])
         # name = str(df["name"])
         period = df["period"].iloc[0]
-        source = df["source"].iloc[0]
+        source = "Data source:MYSQL(DataBase)"
+        tw_time = datetime.timezone(datetime.timedelta(hours=8))
         time = datetime.datetime.now()
-        query_time = time.strftime("%Y-%m-%d %H:%M:%S")
+        query_time = time.now(tz=tw_time).strftime("%Y-%m-%d %H:%M:%S")
 
         for date, row in df.iterrows():
             data_date = date.strftime("%Y-%m-%d")
@@ -76,21 +77,25 @@ def save_stock_to_mysql(df):
     conn.close()
 
 #  從MySQL提取資料
-def load_stock_from_mysql(stock_code):
+def load_stock_from_mysql(stock_code, period):
     conn = connector_mysql()
     cursor = conn.cursor()
     try:
-        sql = "SELECT code, name, period, open, close, high, low, source, data_date, query_time FROM `stock_list` WHERE `code`= %s;"
-        values = (stock_code,)
+        sql = "SELECT code, name, period, open, close, high, low, source, data_date, query_time FROM `stock_list` WHERE `code`= %s AND `period`= %s;"
+        values = (stock_code, period)
 
         cursor.execute(sql, values)
-
         record = cursor.fetchall()
-        for row in record:
-            df = pd.DataFrame([row], columns=('code', 'name', 'period', 'open', 'close', 'high', 'low', 'source', 'data_date', 'query_time'))
-            df["data_date"] = pd.to_datetime(df["data_date"], errors="coerce")
-            df.set_index("data_date", inplace=True)
-            return (df)
+        if not record:
+            df = get_stock_data(stock_code, period)
+            save_stock_to_mysql(df)
+            return df
+        else:
+            for row in record:
+                df = pd.DataFrame([row], columns=('code', 'name', 'period', 'open', 'close', 'high', 'low', 'source', 'data_date', 'query_time'))
+                df["data_date"] = pd.to_datetime(df["data_date"], errors="coerce")
+                df.set_index("data_date", inplace=True)
+                return (df)
     except Exception as e:
         print(f"提取失敗:{e}")
         return None
