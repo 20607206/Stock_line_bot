@@ -71,9 +71,10 @@ def save_stock_to_mysql(df):
         print("儲存成功")
     except Exception as e:
         print(f"存入失敗: {e}")
-    conn.commit()
-    cursor.close()
-    conn.close()
+    finally:
+        conn.commit()
+        cursor.close()
+        conn.close()
 
 #  從MySQL提取資料
 def load_stock_from_mysql(stock_code, period):
@@ -81,7 +82,10 @@ def load_stock_from_mysql(stock_code, period):
     conn = connector_mysql()
     cursor = conn.cursor()
     try:
-        sql = "SELECT code, name, period, Open, Close, High, Low, source, data_date, query_time FROM `stock_list` WHERE `code`= %s AND `period`= %s;"
+        sql = ("SELECT code, name, period, Open, Close, High, Low, source, data_date, query_time "
+               "FROM `stock_list` "
+               "WHERE `code`= %s AND `period`= %s"
+               "ORDER BY data_date DESC;")
         values = (stock_code, period,)
         cursor.execute(sql, values)
         record = cursor.fetchall()
@@ -89,10 +93,13 @@ def load_stock_from_mysql(stock_code, period):
         if not record:
             df = get_stock_data(stock_code, period)
             save_stock_to_mysql(df)
+            subscribe_stock(stock_code)
             return df
         else:
             for row in record:
-                df = pd.DataFrame([row], columns=('code', 'name', 'period', 'Open', 'Close', 'High', 'Low', 'source', 'data_date', 'query_time'))
+                df = pd.DataFrame([row], columns=(
+                    'code', 'name', 'period', 'Open', 'Close', 'High', 'Low', 'source', 'data_date', 'query_time'
+                ))
                 df["data_date"] = pd.to_datetime(df["data_date"], errors="coerce")
                 df.set_index("data_date", inplace=True)
                 return (df)
@@ -100,8 +107,9 @@ def load_stock_from_mysql(stock_code, period):
         print(f"提取失敗:{e}")
         return None
 
-    cursor.close()
-    conn.close()
+    finally:
+        cursor.close()
+        conn.close()
 
 #  刪除mysql資料
 def remove_sql(stock_code):
@@ -112,15 +120,48 @@ def remove_sql(stock_code):
         values = (stock_code,)
 
         cursor.execute(sql_delete, values)
-
-        conn.commit()
     except Exception as e:
         print(f"刪除失敗{e}")
         return None
+    finally:
+        conn.commit()
+        cursor.close()
+        conn.close()
 
-    cursor.close()
-    conn.close()
+#  股票列表
+def user_subscribe():
+    conn = connector_mysql()
+    cursor = conn.cursor()
+    try:
+        user_subscribe = ("SELECT `code` "
+                          "FROM user_subscribe")
+        cursor.execute(user_subscribe)
+        result = cursor.fetchall()
+        subscribe_list = [row[0] for row in result]
+        return subscribe_list
+    except Exception as e:
+        print(f"提取失敗{e}")
+        return None
+    finally:
+        conn.commit()
+        cursor.close()
+        conn.close()
 
+def subscribe_stock(stock_code):
+    conn = connector_mysql()
+    cursor = conn.cursor()
+    try:
+        subscribe = ("INSERT INTO `user_subscribe` (`code`)"
+                     "values = %s;")
+        cursor.execute(subscribe, stock_code)
+        print("訂閱成功!!")
+    except Exception as e:
+        print(f"訂閱失敗{e}")
+        return None
+    finally:
+        conn.commit()
+        cursor.close()
+        conn.close()
 #  測試連線
 def test_mysql_connection():
     try:

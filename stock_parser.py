@@ -7,7 +7,6 @@ import re
 
 with open("stock_bidirectional_map.json", "r", encoding="utf-8") as stock:
     maps = json.load(stock)
-    stock_list = maps['user_subscribe']
 
 #  辨識文字內容
 def resolve_stock_code(user_input):
