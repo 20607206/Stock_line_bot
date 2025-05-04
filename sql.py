@@ -84,8 +84,9 @@ def load_stock_from_mysql(stock_code, period):
     try:
         sql = ("SELECT code, name, period, Open, Close, High, Low, source, data_date, query_time "
                "FROM `stock_list` "
-               "WHERE `code`= %s AND `period`= %s"
-               "ORDER BY data_date DESC;")
+               "WHERE `code`= %s AND `period`= %s "
+               "ORDER BY data_date DESC "
+               "LIMIT 5;")
         values = (stock_code, period,)
         cursor.execute(sql, values)
         record = cursor.fetchall()
@@ -96,13 +97,12 @@ def load_stock_from_mysql(stock_code, period):
             subscribe_stock(stock_code)
             return df
         else:
-            for row in record:
-                df = pd.DataFrame([row], columns=(
-                    'code', 'name', 'period', 'Open', 'Close', 'High', 'Low', 'source', 'data_date', 'query_time'
-                ))
-                df["data_date"] = pd.to_datetime(df["data_date"], errors="coerce")
-                df.set_index("data_date", inplace=True)
-                return (df)
+            df = pd.DataFrame(record, columns=(
+                'code', 'name', 'period', 'Open', 'Close', 'High', 'Low', 'source', 'data_date', 'query_time'
+            ))
+            df["data_date"] = pd.to_datetime(df["data_date"], errors="coerce")
+            df.set_index("data_date", inplace=True)
+            return (df)
     except Exception as e:
         print(f"提取失敗:{e}")
         return None
