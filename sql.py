@@ -152,7 +152,7 @@ def subscribe_stock(stock_code):
     cursor = conn.cursor()
     try:
         subscribe ='''
-        INSERT INTO `user_subscribe` (`code`)"
+        INSERT INTO `user_subscribe` (`code`)
         values (%s)
         '''
         cursor.execute(subscribe, list(stock_code))
