@@ -153,7 +153,7 @@ def subscribe_stock(stock_code):
     try:
         subscribe = ("INSERT INTO `user_subscribe` (`code`)"
                      "values = %s;")
-        cursor.execute(subscribe, stock_code)
+        cursor.execute(subscribe, list(stock_code))
         print("訂閱成功!!")
     except Exception as e:
         print(f"訂閱失敗{e}")
