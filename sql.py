@@ -151,12 +151,16 @@ def subscribe_stock(stock_code):
     conn = connector_mysql()
     cursor = conn.cursor()
     try:
-        subscribe ='''
-        INSERT INTO `user_subscribe` (`code`)
-        values (%s)
-        '''
-        cursor.execute(subscribe, (stock_code,))
-        print("訂閱成功!!")
+        subscribe_list = user_subscribe()
+        if stock_code in subscribe_list:
+            print("股票已訂閱")
+        else:
+            subscribe ='''
+            INSERT INTO `user_subscribe` (`code`)
+            values (%s)
+            '''
+            cursor.execute(subscribe, (stock_code,))
+            print("訂閱成功!!")
     except Exception as e:
         print(f"訂閱失敗{e}")
         return None
