@@ -9,7 +9,7 @@ class StockJobManager:
         self.stock_list = stock_list
         self.period = "1d"
 
-
+    #  搜尋資料
     def job1(self):
         print("Job1 is Working...")
         try:
@@ -28,6 +28,7 @@ class StockJobManager:
         except Exception as e:
             print(f"{e}")
 
+    #  存入資料
     def job2(self):
         print("Job2 is Working...")
         try:
@@ -41,6 +42,7 @@ class StockJobManager:
         except Exception as e:
             print(f"{e}")
 
+    #  刪除資料
     def job3(self):
         print("Job3 Start clearing stock data...")
         try:

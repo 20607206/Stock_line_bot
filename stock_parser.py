@@ -67,29 +67,27 @@ def is_tw_stock(stock_code):
 def get_twstock_price(stock_code):
     try:
         realtime_data = twstock.realtime.get(stock_code)
-        period = "1d"
-        source = "資料來源:twstock(主資料)"
+
         if realtime_data and realtime_data["realtime"]:
             info = realtime_data.get("info", {})
             rt = realtime_data.get("realtime", {})
             df = pd.DataFrame([{
                 "code": info.get("code"),
                 "name": info.get("name"),
-                "period": period,
+                "period": "1d",
                 "date": info.get("time"),
                 "Open": float(rt.get("open")),
                 "Close": float(rt.get("latest_trade_price")),
                 "High": float(rt.get("high")),
                 "Low": float(rt.get("low")),
-                "source": source
+                "source": "資料來源:twstock(主資料)"
             }])
             df["date"] = pd.to_datetime(df["date"], errors="coerce")
             df.set_index("date", inplace=True)
-            pd.set_option('display.max_columns', None)
             return df
-        return None #pd.DataFrame()
+        return pd.DataFrame()
     except Exception as e:
-        return f"{e}"#pd.DataFrame()
+        return pd.DataFrame()
 
 # yfinance：台股或美股多日查詢
 def get_yfinance_price(stock_code, period, is_tw = True):
@@ -101,9 +99,9 @@ def get_yfinance_price(stock_code, period, is_tw = True):
         df["name"] = get_stock_name(stock_code)
         df["source"] = f"資料來源:yfinance({'台股備援' if is_tw else '美股'})"
         df["period"] = period
-        pd.set_option('display.max_columns', None)
         return df
     except Exception as e:
+        print(f"{e}")
         return pd.DataFrame()
 
 #  查詢函式
@@ -173,9 +171,3 @@ def format_stock_text(df):
     result_text.append(source)
 
     return "\n".join(result_text)
-
-
-
-
-
-

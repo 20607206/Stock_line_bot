@@ -52,12 +52,16 @@ def to_sql(df):
         return stock_list
     except Exception  as e:
         print(f"轉換錯誤: {e}")
-        return None
+        return []
 
 #  存入MySQL
 def save_stock_to_mysql(df):
-    conn = connector_mysql()
     stock_info_list = to_sql(df)
+    if not stock_info_list:  # 空 list 或 None
+        print("⚠️ 無有效資料可儲存")
+        return
+
+    conn = connector_mysql()
     cursor = conn.cursor()
     try:
         sql = """
@@ -66,13 +70,12 @@ def save_stock_to_mysql(df):
         """
 
         for stock_info in stock_info_list:
-            values = stock_info
-            cursor.execute(sql, values)
+            cursor.execute(sql, stock_info)
+        conn.commit()
         print("儲存成功")
     except Exception as e:
         print(f"存入失敗: {e}")
     finally:
-        conn.commit()
         cursor.close()
         conn.close()
 
@@ -91,7 +94,7 @@ def load_stock_from_mysql(stock_code, period):
         cursor.execute(sql, values)
         record = cursor.fetchall()
 
-        if not record:
+        if not record:  #  (沒有資料會執行爬蟲並存到SQL)
             df = get_stock_data(stock_code, period)
             save_stock_to_mysql(df)
             subscribe_stock(stock_code)
@@ -147,6 +150,7 @@ def user_subscribe():
         cursor.close()
         conn.close()
 
+#  訂閱股票
 def subscribe_stock(stock_code):
     conn = connector_mysql()
     cursor = conn.cursor()
@@ -168,6 +172,7 @@ def subscribe_stock(stock_code):
         conn.commit()
         cursor.close()
         conn.close()
+
 #  測試連線
 def test_mysql_connection():
     try:
