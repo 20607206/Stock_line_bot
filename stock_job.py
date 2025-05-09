@@ -52,6 +52,7 @@ class StockJobManager:
                 for code in self.stock_list:
                     print(f"Starting remove {code}")
                     sql.remove_sql(code)
+                    time.sleep(1)
                     print(f"Delete code : {code}")
 
         except Exception as e:
