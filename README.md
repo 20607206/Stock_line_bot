@@ -50,7 +50,7 @@ MYSQL_DATABASE=你的MySQL資料庫名稱
 
 - 1:將專案 clone 下來
 - 2:安裝相依套件：
-    pip install -r requirements.txt
+    ```pip install -r requirements.txt```
 - 3:配置好 .env 或 Heroku Config Vars 並部署到 Heroku
 - 4:透過 Line 聊天視窗輸入股票代碼或名稱，即可查詢股票資訊
 
