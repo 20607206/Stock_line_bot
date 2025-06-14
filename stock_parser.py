@@ -145,8 +145,9 @@ def format_stock_text(df):
     name = df["name"].iloc[0]
     source = df["source"].iloc[0]
     period = df["period"].iloc[0]
+    tw_time = datetime.timezone(datetime.timedelta(hours=8))
     time = datetime.datetime.now()
-    query_time = time.strftime("%H:%M:%S")
+    query_time = time.now(tz=tw_time).strftime("%H:%M:%S")
     result_text = [
         f"{'=' * 24}\n"
         f"股票代碼:{stock_code}\n"
