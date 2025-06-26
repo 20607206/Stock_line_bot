@@ -35,7 +35,7 @@ def resolve_stock_code(user_input):
     for code in possible_codes:
         if code in tw_code_to_code or us_code_to_code or code:
             return code
-
+    print(f"🧪 resolved code: {code}, is_tw: {is_tw_stock(code)}")
     return f"{user_input}"
 
 #  設定使用者搜尋天數(預設回傳1d)
@@ -87,6 +87,7 @@ def get_twstock_price(stock_code):
             return df
         return pd.DataFrame()
     except Exception as e:
+        print(f"{e}")
         return pd.DataFrame()
 
 # yfinance：台股或美股多日查詢
